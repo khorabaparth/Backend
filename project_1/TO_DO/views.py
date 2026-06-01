@@ -2,12 +2,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import Students
 import json
-import os
 
 @csrf_exempt
 def StudentData(request, id=None):
-    FILE_PATH = os.path.join(os.path.expanduser("~"), "Desktop", "DevlopmentFolder", "JsonDataFile", "API_DATA.json")
-
+    
     if request.method == "GET":
         query = request.GET.get('q','')
         students = Students.objects.filter(name__icontains=query)
@@ -21,8 +19,6 @@ def StudentData(request, id=None):
                 'city': i.city,
                 'active': i.active,
             })
-        with open(FILE_PATH, "w") as f:
-            json.dump(data, f , indent= 4)
         return JsonResponse(data, safe=False)
 
     elif request.method == "POST":
@@ -35,23 +31,6 @@ def StudentData(request, id=None):
                 city=body.get('city'),
                 active=body.get('active'),
             )
-            try:
-                with open(FILE_PATH, "r") as f:
-                    data = json.load(f)
-            except:
-                data = []
-
-            data.append({
-                'id': student.id,
-                'name': student.name,
-                'age': student.age,
-                'mobile': student.mobile,
-                'city': student.city,
-                'active': student.active,
-            })
-            with open(FILE_PATH, "w") as f:
-                json.dump(data, f)
-
             return JsonResponse({"message": "Student added", "id": student.id})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -85,7 +64,6 @@ def StudentData(request, id=None):
             return JsonResponse({"error": "Student not found"}, status=404)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
-    
 
     else:
         return JsonResponse({"error": "Invalid Method"}, status=400)
